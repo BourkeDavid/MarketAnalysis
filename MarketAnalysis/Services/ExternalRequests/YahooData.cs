@@ -6,12 +6,25 @@ using System.Threading.Tasks;
 using System.IO;
 using System.Net;
 using MarketAnalysis.Services.ExternalRequests;
+using Newtonsoft.Json.Linq;
+using MarketAnalysis.Model;
+using Newtonsoft.Json;
 
 namespace MarketAnalysis.Services.ExternalRequests
 {
+    /// <summary>
+    /// Yahoo data provider class
+    /// </summary>
     public class YahooData : IRequestData
     {
-        public string RequestQuote(string[] symbols)
+        private string _quoteString;
+        public string QuoteString
+        {
+            get { return _quoteString; }
+            private set { _quoteString = value; }
+        }
+
+        public void RequestQuote(string[] symbols)
         {
             StringBuilder symbolBuilder = new StringBuilder();
             // Builds %22PLE.L%22%2C%22RMG.L%22
@@ -30,7 +43,7 @@ namespace MarketAnalysis.Services.ExternalRequests
             //string url = string.Format(@"http://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20yahoo.finance.quotes%20where%20symbol%20in%20({0})%0A%09%09&format=json&diagnostics=true&env=http%3A%2F%2Fdatatables.org%2Falltables.env&callback=", symbolsString);
             string requestString = string.Format(@"http://query.yahooapis.com/v1/public/yql?q=select%20symbol%2C%20Ask%2C%20Bid%2C%20PercentChange%20from%20yahoo.finance.quotes%20where%20symbol%20in%20({0})&format=json&diagnostics=true&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys&callback=", symbolsString);
             string response = MakeRequest(requestString);
-            return response;
+            QuoteString = response;
         }
 
         private string MakeRequest(string requestString)
@@ -77,6 +90,43 @@ namespace MarketAnalysis.Services.ExternalRequests
                 }
             }
             return output;
+        }
+
+
+
+        public ICollection<Model.Quote> GetQuotes()
+        {
+            JObject o = (JObject)JToken.Parse(_quoteString);
+
+            var countToken = o.SelectToken("query.count");
+            int quoteCount = Convert.ToInt32(countToken);
+
+            ICollection<JToken> quotesToken = null;
+            if (quoteCount > 1)
+            {
+                quotesToken = o.SelectToken("query.results.quote").Select(s => s).ToList();
+            }
+            else if (quoteCount == 1)
+            {
+                var tempToken=o.SelectToken("query.results.quote");
+                quotesToken = new List<JToken>();
+                quotesToken.Add(tempToken);
+            }
+
+            ICollection<Quote> quotes = new List<Quote>();
+
+            var quoteDate = o.SelectToken("query.created").ToString();
+            DateTime dQuoteDate = DateTime.Parse(quoteDate);
+
+            foreach (var quoteToken in quotesToken)
+            {
+                Quote quote = JsonConvert.DeserializeObject<Quote>(quoteToken.ToString());
+                quote.Created = dQuoteDate;
+                quotes.Add(quote);
+
+            }
+
+            return quotes;
         }
     }
 }

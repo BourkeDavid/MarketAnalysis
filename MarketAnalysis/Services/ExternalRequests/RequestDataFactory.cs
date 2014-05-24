@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace MarketAnalysis.Services.ExternalRequests
 {
+    /// <summary>
+    /// Factory for returning the class used for requesting data
+    /// </summary>
     public static class RequestDataFactory
     {
         public static IRequestData GetInstance(RequstDataEnum requestDataEnum)
@@ -20,6 +23,9 @@ namespace MarketAnalysis.Services.ExternalRequests
             }   
         }
 
+        /// <summary>
+        /// Enum of data providers
+        /// </summary>
         public enum RequstDataEnum
         {
             Yahoo
