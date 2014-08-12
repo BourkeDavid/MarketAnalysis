@@ -19,7 +19,7 @@ namespace MarketAnalysis
             
 
            // string[] symbols = {"PLE.L"};
-            string[] symbols = { "PLE.L", "RMG.L" };
+            string[] symbols = { "PLE.L", "RMG.L", "TSCO.L" };
 
             int limit = 10;
             int counter = 0;
@@ -34,7 +34,7 @@ namespace MarketAnalysis
             ICollection<Quote> allQuotes = quoteHistory.Quotes;
             foreach(Quote quote in allQuotes)
             {
-                Console.WriteLine(quote.Ask);
+                Console.WriteLine("{0} {1}", quote.Symbol, quote.Ask);
             }
             Console.ReadLine();
             
