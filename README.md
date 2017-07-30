@@ -1,6 +1,4 @@
-MarketAnalysis
+request-stock-price
 ==============
 
-MarketAnalysis
-
-Program for analysing stock markets.
+A small application to request stock prices from yahoo using yql.
